@@ -1,0 +1,116 @@
+#!/bin/bash
+#
+# This scrip is called by systemd
+# see: /etc/systemd/system/download.service
+#
+# To enable the service:
+# sudo systemctl enable download
+#
+# To start the service manually
+# sudo systemctl start download
+#
+#
+
+#
+# Setup netfilter
+#
+NETFILTER=/home/netfilter
+
+git config --global user.email "irai852@gmail.com"
+git config --global user.name "Irai"
+
+getModeFunction() {
+  local mode=prod
+  if [ -f "$NETFILTER/private/config.yaml" ]; then
+    mode=`cat $NETFILTER/private/config.yaml | sed -En 's/ *mode: *\"*([a-fA-F]*)\"*/\1/p'`
+    if [ "$mode" != "test" ] && [ "$mode" != "beta" ] && [ "$mode" != "prod" ]; then
+        mode=prod
+    fi
+  fi
+  echo $mode
+}
+
+# gitPull refresh the git repo
+# $1 - repo location
+# $2 - repo url
+gitPullFunction() {
+  local dir=$1
+  local repo=$2
+
+  echo "git download $dir $repo"
+  if [ ! -d "$dir" ]; then
+    git -C $dir clone --depth 1 $repo
+    OK=$?
+    if [ $OK -ne 0 ]; then
+      echo "failed to clone $repo"
+      rm -rf "$dir"
+      return 1
+    fi
+    return 0
+  else
+    git -C $dir fetch
+    if [ $? -ne 0 ]; then
+      echo "failed to fetch repo $dir"
+      return 1
+    fi
+    local gitwork=`git -C $dir cherry master origin/master`
+    if [ $? -ne 0 ]; then
+      echo "failed to cherry pick repo $dir"
+      return 1
+    fi
+    if [ "$gitwork" != "" ]; then
+      git -C $dir merge
+      if [ $? -ne 0 ]; then
+        echo "failed to merge pick repo $dir"
+        return 1
+      fi
+      echo "succefully git fetch and merge"
+      echo `git -C $dir status`
+    else
+      echo "git download nothing to do"
+    fi
+    return 0
+  fi
+}
+
+download() {
+
+  echo "netfilter download started"
+
+  mode=`getModeFunction`
+
+  local dir=${NETFILTER}/netfilter_${mode}
+  local gitrepo="https://github.com/irai/netfilter_${mode}.git"
+
+  if [ ! -d "$dir" ]; then
+     mkdir $dir
+  fi
+
+  # dont't download is using detached head
+  # it means the device was manually set to a previous version
+  detached=`git -C $dir status | sed -En 's/.*(HEAD detached .*).*/\1/p'`
+  if [ "$detached" != "" ]; then
+     echo "Using $detached"
+     return
+  fi
+
+  gitPullFunction $dir $gitrepo
+  if [ $? -ne 0 ]; then
+    echo "failed to pull $dir $gitrepo $?"
+  fi
+
+}
+
+start() {
+  download
+}
+
+stop() {
+  echo "download stopping"
+}
+
+case $1 in
+  start|stop|download) "$1" ;;
+esac
+
+

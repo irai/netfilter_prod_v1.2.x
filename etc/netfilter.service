@@ -1,0 +1,28 @@
+[Unit]
+Description=netfilter
+Wants=network-online.target
+After=network.target network-online.target
+
+[Service]
+WorkingDirectory=/home/netfilter
+Type=simple
+User=root
+
+# comment
+ExecStartPre=-/etc/init.d/network-manager stop
+ExecStartPre=-/etc/init.d/wicd stop
+ExecStartPre=-/bin/systemctl stop dhcpcd.service
+ExecStartPre=-/usr/bin/pkill dhcpd
+ExecStartPre=-/usr/bin/pkill dhclient
+ExecStartPre=-/home/netfilter/bin/netfilter.download.script download 
+ExecStartPre=-/home/netfilter/bin/setup.sh setup
+
+ExecStart=/home/netfilter/bin/netfilter -i "eth0" -script /home/netfilter/bin/firewall.sh
+#ExecStop=/etc/systemd/system/netfilter.script stop
+
+RemainAfterExit=no
+RestartSec=30
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

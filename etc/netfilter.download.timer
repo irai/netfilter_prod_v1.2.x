@@ -1,0 +1,9 @@
+[Unit]
+Description=netfilter download every 10 minutes
+
+[Timer]
+OnCalendar=00/1:00
+
+[Install]
+WantedBy=multi-user.target
+

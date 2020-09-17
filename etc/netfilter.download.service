@@ -1,0 +1,19 @@
+[Unit]
+Description=netfilter download
+Wants=network-online.target
+After=network.target network-online.target
+
+[Service]
+WorkingDirectory=/home/netfilter
+Type=oneshot
+User=root
+
+ExecStartPre=-/home/netfilter/bin/netfilter.download.script download
+
+ExecStart=/home/netfilter/bin/setup.sh setup
+#ExecStop=/etc/systemd/system/netfilter.download.script stop
+
+#TimeoutSec=240
+
+[Install]
+WantedBy=multi-user.target
