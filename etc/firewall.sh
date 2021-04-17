@@ -40,11 +40,20 @@ echo "Host:" $HOST
 # enable IP forwarding
 #sudo echo 1 | sudo tee /proc/sys/net/ipv4/ip_forward
 
-# disable ICMP redirects
+# disable sending ICMP redirects
 # to prevent client sending directly to the gateway
 # see: https://unix.stackexchange.com/questions/57941/linux-always-send-icmp-redirect
 # remove this when linux image is updated in /etc/sysctl.conf
 echo 0 | sudo tee /proc/sys/net/ipv4/conf/*/send_redirects 
+
+# disable accepting ICMP redirects
+echo 0 | sudo tee /proc/sys/net/ipv4/conf/*/accept_redirects
+
+# disable icmp source routing
+# Source routing is an Internet Protocol mechanism that allows an IP packet to carry information, 
+# a list of addresses, that tells a router the path the packet must take.
+# see: https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/6/html/security_guide/sect-security_guide-server_security-disable-source-routing
+echo 0 | sudo tee /proc/sys/net/ipv4/conf/*/accept_source_route
 
 #sudo modprobe ip_tables
 #sudo modprobe ip_conntrack
