@@ -42,7 +42,9 @@ echo "Host:" $HOST
 
 # disable ICMP redirects
 # to prevent client sending directly to the gateway
-#echo 0 | sudo tee /proc/sys/net/ipv4/conf/*/send_redirects 
+# see: https://unix.stackexchange.com/questions/57941/linux-always-send-icmp-redirect
+# remove this when linux image is updated in /etc/sysctl.conf
+echo 0 | sudo tee /proc/sys/net/ipv4/conf/*/send_redirects 
 
 #sudo modprobe ip_tables
 #sudo modprobe ip_conntrack
