@@ -22,7 +22,7 @@ git config --global user.name "Irai"
 getModeFunction() {
   local mode=prod
   if [ -f "$NETFILTER/private/config.yaml" ]; then
-    mode=`cat $NETFILTER/private/config.yaml | sed -En 's/ *mode: *\"*([a-fA-F]*)\"*/\1/p'`
+    mode=`cat $NETFILTER/private/config.yaml | sed -En 's/^ *mode: *\"*([a-fA-F]*)\"*/\1/p'`
     if [ "$mode" != "test" ] && [ "$mode" != "beta" ] && [ "$mode" != "prod" ]; then
         mode=prod
     fi
